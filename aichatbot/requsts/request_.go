@@ -51,12 +51,9 @@ func GetGeminiResponse(apiKey, prompt string) (string, error) {
 		return "", fmt.Errorf("failed to get a valid response from Gemini: %s, body: %s", resp.Status(), string(body))
 	}
 
-	// Check if there are candidates and extract the content
 	if len(geminiResp.Candidates) > 0 && len(geminiResp.Candidates[0].Content.Parts) > 0 {
 		return strings.TrimSpace(geminiResp.Candidates[0].Content.Parts[0].Text), nil
 	}
-
-	// If no content is received, log the entire response body for troubleshooting
 	body := resp.Body()
 	return "", fmt.Errorf("no content received from Gemini API, body: %s", string(body))
 }

@@ -8,5 +8,6 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 	r.POST("/generate", controller.GenerateHandler)
+	r.POST("/get-response", controller.GetResponseByPrompt)
 
 }

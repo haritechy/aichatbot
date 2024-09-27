@@ -3,16 +3,18 @@ package controller
 import (
 	"log"
 	"net/http"
+	"os"
+	"slack-chatbot/database"
 	"slack-chatbot/models"
 	"slack-chatbot/requsts"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-var geminiAPIKey = "AIzaSyBUiRYimT0GT6ZndhR4_2CfD4UoYyzeVpo"
-
 func GenerateHandler(c *gin.Context) {
 	var prompt models.Prompt
+	geminiAPIKey := os.Getenv("GEMINI_API_KEY")
 	if err := c.BindJSON(&prompt); err != nil {
 		log.Printf("Error binding request: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
@@ -25,7 +27,16 @@ func GenerateHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't process your request"})
 		return
 	}
+	promptResponse := models.PromptResponse{
+		Prompt:   strings.TrimSpace(prompt.Prompt),
+		Response: strings.TrimSpace(responseText),
+	}
 
-	// Return the response back to the client
+	if err := database.DB.Create(&promptResponse).Error; err != nil {
+		log.Printf("Error saving to database: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "couldn't save the response"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"response": responseText})
 }
